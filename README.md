@@ -36,16 +36,13 @@ This API manages a blogging platform where **Authors** can create multiple **Pos
 ## System Architecture
 
 The application is containerized and deployed to **AWS Lambda**, communicating with a managed **Amazon RDS (MySQL)** database.
-
-```text
-       +---------------------+             +---------------------+
-       |      AUTHORS        |             |       POSTS         |
-       +---------------------+             +---------------------+
-       | PK  id (int)        | <---------+ | PK  id (int)        |
-       |     name (str)      |   1     N   |     title (str)     |
-       |     email (unique)  |             |     content (text)  |
-       +---------------------+             | FK  author_id (int) |
-                                           +---------------------+
+```mermaid
+graph LR
+    Client["Client / Browser"] -- HTTPS Request --> LambdaURL["AWS Lambda Function URL"]
+    subgraph AWS Cloud
+        LambdaURL --> Lambda["Lambda Container (FastAPI)"]
+        Lambda -- SQLAlchemy Connection --> RDS[("Amazon RDS MySQL")]
+    end
 ```
 
 ## Database Schema (ERD)
@@ -187,6 +184,19 @@ docker push YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/blog-api-repo:latest
   - `DB_USER`
   - `DB_PASSWORD`
   - `DB_NAME`
+
+---
+
+### 3️. Run & Verify
+
+Once deployed, AWS will generate a **Lambda Function URL** (for example): `https://xyz.lambda-url.us-east-1.on.aws`
+
+
+#### Access the API
+
+Open your browser and navigate to: `https://YOUR_FUNCTION_URL/docs`
+
+This will load the interactive **Swagger UI** for verifying the deployed API.
 
 ---
 
