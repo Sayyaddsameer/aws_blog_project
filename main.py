@@ -88,7 +88,8 @@ def delete_author(id: int, db: Session = Depends(database.get_db)):
     if not author:
         raise HTTPException(status_code=404, detail="Author not found")
     
-    db.delete(author) # [REQUIREMENT] Cascade delete happens here automatically via SQLAlchemy models
+    # [REQUIREMENT] Cascade delete happens here automatically via SQLAlchemy models
+    db.delete(author) 
     db.commit()
     return {"message": "Author and associated posts deleted"}
 
@@ -124,7 +125,7 @@ def get_posts(author_id: Optional[int] = None, db: Session = Depends(database.ge
     if author_id:
         # [REQUIREMENT] Allow filtering by author_id
         query = query.filter(models.Post.author_id == author_id)
-    return query.all() # [REQUIREMENT] List all posts
+    return query.all()
 
 # [REQUIREMENT] GET /posts/{id} (Detailed response)
 @app.get("/posts/{id}", response_model=PostResponseDetailed)
