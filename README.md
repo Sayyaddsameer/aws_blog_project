@@ -334,25 +334,25 @@ To verify full functionality and relationship integrity, execute the following t
 ---
 
 #### Delete Post
-**Endpoint:** `DELETE /posts/{id}`  
+**Endpoint:** `DELETE /posts/{id}`
 **Input:** `id = 1`
 
-**Expected Result:**  
-`204 No Content`
+**Expected Result:**
+`200 OK` — JSON: `{"message": "Post deleted"}`
 
 ---
 
 #### Test Cascade Delete
 First, create a new post for **Alice** to verify cascade behavior.
 
-**Action:**  
+**Action:**
 Delete the author.
 
-**Endpoint:** `DELETE /authors/{id}`  
+**Endpoint:** `DELETE /authors/{id}`
 **Input:** `id = 1`
 
-**Expected Result:**  
-`204 No Content`
+**Expected Result:**
+`200 OK` — JSON: `{"message": "Author and associated posts deleted"}`
 
 **Verification:**  
 Call `GET /posts` — the response should be an **empty list**, confirming the post was automatically deleted via `ON DELETE CASCADE`.
@@ -367,28 +367,27 @@ A naive ORM implementation retrieves a list of posts using **1 query**, then exe
 **Solution:**  
 Implemented **eager loading** using SQLAlchemy’s `joinedload`, ensuring that posts and their associated authors are fetched in a **single SQL query** via a `JOIN`.
 
-#### Code Snippet (`crud.py`)
+#### Code Snippet (`main.py`)
 
 ```python
-def get_posts(db: Session):
-    # Fetches Post AND Author in a SINGLE SQL query using a JOIN
-    return (
-        db.query(models.Post)
-        .options(joinedload(models.Post.author))
-        .all()
-    )
+# Efficiently fetches the Post AND the associated Author in a single query
+# Prevents the application from making a separate DB call for the author details
+post = (
+    db.query(models.Post)
+    .options(joinedload(models.Post.author))
+    .filter(models.Post.id == id)
+    .first()
+)
 ```
 
-### 2️. Separation of Concerns
+### 2️. Modular Code Structure
 
-The codebase follows a **modular architecture** to ensure clarity, testability, and long-term maintainability.
+The codebase is organized to ensure clarity and testability:
 
-- **`models.py`** — Data Layer (SQLAlchemy ORM models)
-- **`schemas.py`** — Validation Layer (Pydantic request/response models)
-- **`main.py`** — Presentation Layer (FastAPI routes and controllers)
-- **`database.py`** — Infrastructure Layer (database connection and session management)
-
-This separation ensures each layer has a **single responsibility**, reducing coupling and improving code quality.
+- **`models.py`** — Data Layer (SQLAlchemy ORM models & Relationships)
+- **`database.py`** — Infrastructure Layer (Connection logic & Environment Config)
+- **`main.py`** — Application Layer (FastAPI routes, Pydantic Schemas, and Controllers)
+- **`Dockerfile`** — Deployment Layer (Containerization logic)
 
 ---
 
